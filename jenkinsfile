@@ -1,51 +1,41 @@
 pipeline{
-    agent none
-    tools{
-        jdk 'myjava'
-        maven 'mymaven'
+    agent any
+    parameters {
+        string(name:'ENV',defaultvalue:'Test',description:'version to deploy')
+        booleanParam(name:'ExecuteTests',defaultvalue:'True',description:'decide to run test cases')
+        choice(name:'APPVERSION',choices['1.0','1.1','1.2'])    
+    
     }
     stages{
-        stage("COMPILE"){
-            agent {label 'linux_slave'}
+        stage("Build"){
             steps{
                 script{
-                    echo "Compiling the code"
-                    sh 'mvn compile'
+                    echo "Building the code"
+                    
                 }
             }
         }
-        stage("UNITTEST"){
-            agent any
+        stage("Testing"){
+            when {
+                params.ExecuteTests ==True
+            }
             steps{
                 script{
                     echo "Testing the code"
-                    sh 'mvn test'
-                }
-            }
-            post{
-                always{
-                    junit 'target/surefire-reports/*.xml'
+                    
                 }
             }
         }
-         stage("PACKAGE"){
-             agent {label 'linux_slave'}
-            steps{
-                script{
-                    echo "Packaging the code"
-                    sh 'mvn package'
-                }
-            }
-        }
+            
+         
          stage("DEPLOY"){
             agent any
             steps{
                 script{
                     echo "Deploying the app"
+                    echo "Deploying to env:$[params.ENV}"
                 }
             }
         }
     }
 }
-© 2022 GitHub, Inc.
-Terms
